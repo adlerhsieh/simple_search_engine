@@ -1,7 +1,9 @@
 package indexer
 
 import (
+	"github.com/adlerhsieh/simple_search_engine/entities"
 	"github.com/adlerhsieh/simple_search_engine/interfaces"
+	"github.com/adlerhsieh/simple_search_engine/tokenizer"
 )
 
 type Indexer struct {
@@ -14,10 +16,23 @@ func New(storage interfaces.DataStorage) *Indexer {
 	}
 }
 
-func (i *Indexer) Index() error {
-	// err := i.Storage.SaveDocument(tokens, documentID)
-	// if err != nil {
-	// 	return err
-	// }
+func (i *Indexer) Index(document *entities.Document) error {
+	err := i.Storage.Set(document)
+	if err != nil {
+		return err
+	}
+
+	tokens, err := tokenizer.Tokenize(document.Content)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range tokens {
+		err := i.Storage.IndexByToken(t, document.ID)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
